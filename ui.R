@@ -14,15 +14,19 @@ library("shinyWidgets")
 # from CRAN: <https://CRAN.R-project.org/package=riskyr>
 # devtools::install_github("hneth/riskyr")
 library("riskyr")
-# sessionInfo()
 
 ## Import data (example scenarios): ------
-
-datasets <- read.csv2("./www/df_scenarios.csv", stringsAsFactors = FALSE)  # 2018 12 30
+datasets <- read.csv2("./www/df_scenarios2.csv", stringsAsFactors = FALSE)
+datasets <- datasets[datasets$scen_lng == "de", ]
+datasets$nr <- 1:nrow(datasets)
+row.names(datasets) <- datasets$nr
 
 # Default color palette and text labels: ------ 
 default.colors <- pal_mod  # init_pal() 
 default.labels <- txt_TF   # init_txt()
+
+# German labels
+assignInNamespace("lbl", riskyr:::lbl_de, ns = "riskyr", pos = "package:riskyr")
 
 ## Define user interface logic: ------
 
@@ -33,7 +37,7 @@ shinyUI(
              
              # 1. Tab panel: Visualizations ------ 
              
-             tabPanel("Visualize risks",
+             tabPanel("Risiken darstellen",
                       icon = icon("blackboard", lib = "glyphicon"), value = "represent",
                       
                       # Sidebar: ------ 
@@ -43,7 +47,7 @@ shinyUI(
                         # A. Sidebar panel for inputs: ---- 
                         sidebarPanel(
                           radioButtons("checkN", label = "Population", 
-                                       choiceNames = list("Slider", "Field"),
+                                       choiceNames = list("Schieberegler", "Zahlenfeld"),
                                        choiceValues = c(0, 1), inline = TRUE),
                           conditionalPanel(condition = "input.checkN == 0",
                                          sliderTextInput(inputId = "N", label = NULL,
@@ -59,8 +63,8 @@ shinyUI(
                                                         min = 10, max = 100000, step = 1)),
                           br(),
                           
-                          radioButtons("checkprev", label = "Prevalence (in percent)", 
-                                       choiceNames = list("Slider", "Field"),
+                          radioButtons("checkprev", label = "Prävalenz (in Prozent)", 
+                                       choiceNames = list("Schieberegler", "Zahlenfeld"),
                                        choiceValues = c(0, 1), inline = TRUE),
                           
                           conditionalPanel(condition = "input.checkprev == 0",
@@ -73,8 +77,8 @@ shinyUI(
                                                         min = 0, max = 100, step = 10^-2)),
                           br(),
                           
-                          radioButtons("checksens", label = "Sensitivity (in percent)", 
-                                       choiceNames = list("Slider", "Field"),
+                          radioButtons("checksens", label = "Sensitivität (in Prozent)", 
+                                       choiceNames = list("Schieberegler", "Zahlenfeld"),
                                        choiceValues = c(0, 1), inline = TRUE),
                           
                           conditionalPanel(condition = "input.checksens == 0",
@@ -86,8 +90,8 @@ shinyUI(
                                            numericInput("numsens", label = NULL, value = 85.00,
                                                         min = 0, max = 100, step = 10^-2)),
                           
-                          radioButtons("checkspec", label = "Specificity (in percent)", 
-                                       choiceNames = list("Slider", "Field"),
+                          radioButtons("checkspec", label = "Spezifität (in Prozent)", 
+                                       choiceNames = list("Schieberegler", "Zahlenfeld"),
                                        choiceValues = c(0, 1), inline = TRUE),
                           
                           conditionalPanel(condition = "input.checkspec == 0",
@@ -102,14 +106,14 @@ shinyUI(
                           
                           # Provide example data (as drop-down list): ------ 
                           
-                          selectInput("dataselection", label = "Load example:", 
+                          selectInput("dataselection", label = "Beispiele laden:", 
                                       choices = setNames(as.list(1:nrow(datasets)), # create choices from datasets
                                                          datasets$scen_lbl), 
                                       selected = NA),
                           
-                          bsButton("help_inputs", label = "Help",
+                          bsButton("help_inputs", label = "Hilfe",
                                    icon = icon("question-sign", lib = "glyphicon"),
-                                   style = "default", type = "action")
+                                   style = "Standard", type = "action")
                         ),
                         
                         # B. Main panel for displaying different visualizations: ------ 
@@ -121,7 +125,7 @@ shinyUI(
                                       
                                       # Prism: ------ 
                                       
-                                      tabPanel("Prism",
+                                      tabPanel("Netzwerkdiagram",
                                                br(),
                                                
                                                fluidRow(
@@ -131,59 +135,109 @@ shinyUI(
                                                wellPanel(
                                                  fluidRow(
                                                    column(4, offset = 0,
-                                                          selectInput("prism.by", label = "Perspective by", 
-                                                                      choices = list("condition tree" = "cd", 
-                                                                                     "decision tree"  = "dc", 
-                                                                                     "accuracy tree"  = "ac",
-                                                                                     "condition + decision" = "cddc",
-                                                                                     "condition + accuracy" = "cdac",
-                                                                                     "decision + condition" = "dccd",
-                                                                                     "decision + accuracy"  = "dcac",
-                                                                                     "accuracy + condition" = "accd",
-                                                                                     "accuracy + decision"  = "acdc"),
+                                                          selectInput("prism.by", label = "Perspektive", 
+                                                                      choices = list("Baum Zustand" = "cd", 
+                                                                                     "Baum Ergebnis"  = "dc", 
+                                                                                     #"accuracy tree"  = "ac",
+                                                                                     "Zustand + Ergebnis" = "cddc"#,
+                                                                                     #"condition + accuracy" = "cdac",
+                                                                                     #"decision + condition" = "dccd",
+                                                                                     #"decision + accuracy"  = "dcac",
+                                                                                     #"accuracy + condition" = "accd",
+                                                                                     #"accuracy + decision"  = "acdc"
+                                                                                     ),
                                                                       selected = "cddc")),
                                                    column(4, 
-                                                          selectInput("prism.area", label = "Box area", 
-                                                                      choices = list("default" = "no", 
-                                                                                     "squares" = "sq", 
-                                                                                     "horizontal rectangles" = "hr"), 
+                                                          selectInput("prism.area", label = "Kästen", 
+                                                                      choices = list("Standard" = "no", 
+                                                                                     "Quadrate" = "sq", 
+                                                                                     "Rechtecke" = "hr"), 
                                                                       selected = "no"))),
                                                  
                                                  fluidRow(
                                                    column(4, 
-                                                          selectInput("prism.f_lbl", label = "Frequency labels", 
-                                                                      choices = list("default" = "def", 
-                                                                                     "names only"     = "nam",
-                                                                                     "values only"    = "num",
-                                                                                     "names + values" = "namnum",
-                                                                                     "abbr. names"          = "abb",
-                                                                                     "abbr. names + values" = "abbnum",
-                                                                                     "none" = "no"
+                                                          selectInput("prism.f_lbl", label = "Häufigkeits Beschriftung", 
+                                                                      choices = list("Standard" = "def", 
+                                                                                     "Nur Namen"     = "nam",
+                                                                                     "Nur Werte"    = "num",
+                                                                                     "Namen + Werte" = "namnum",
+                                                                                     "Abk. Namen"          = "abb",
+                                                                                     "Abk. Namen + Werte" = "abbnum",
+                                                                                     "Keine" = "no"
                                                                       ), 
                                                                       selected = "num")),
                                                    column(4, 
-                                                          selectInput("prism.p_lbl", label = "Probability labels", 
-                                                                      choices = list("default" = "def",
-                                                                                     "names only"     = "nam",
-                                                                                     "values only"    = "num",
-                                                                                     "names + values" = "namnum",
-                                                                                     "abbr. names only"     = "abb",
-                                                                                     "abbr. names + values" = "abbnum",
-                                                                                     "main names only"      = "min",
-                                                                                     "main names + values"  = "mix", 
-                                                                                     "none" = "no"
+                                                          selectInput("prism.p_lbl", label = "Wahrscheinlichkeits Beschriftung", 
+                                                                      choices = list("Standard" = "def",
+                                                                                     "Nur Namen"     = "nam",
+                                                                                     "Nur Werte"    = "num",
+                                                                                     "Namen + Werte" = "namnum",
+                                                                                     "Abk. Namen"     = "abb",
+                                                                                     "Abk. Namen + Werte" = "abbnum",
+                                                                                     "Nur Wichtige Namen"     = "min",
+                                                                                     "Wichtige Namen + Werte"  = "mix", 
+                                                                                     "Keine" = "no"
                                                                       ), 
                                                                       selected = "num"))),
                                                  
                                                  fluidRow(
-                                                   column(4, checkboxInput("prism.show_foot", label = "Show margin notes", value = FALSE)),
+                                                   column(4, checkboxInput("prism.show_foot", label = "Bemerkungen zeigen", value = FALSE)),
                                                    column(2, offset = 5, downloadButton("prism.dl", label = "Save prism"))) 
+                                               ) # wellPanel. 
+                                      ), # tabPanel.
+                                    
+                                      # Frequency Net: ------
+                                      
+                                      tabPanel("Häufigkeitsnetz",
+                                               br(),
+                                               
+                                               fluidRow(
+                                                 column(8, offset = 0, plotOutput("fnet", width = "600", height = "450"))),
+                                               br(),
+                                               
+                                               wellPanel(
+                                                 # fluidRow(
+                                                 #   column(8, offset = 0,
+                                                 #          selectInput("fnet.by", label = "Perspektive", 
+                                                 #                      choices = list(
+                                                 #                                     "Zustand + Ergebnis" = "cddc",
+                                                 #                                     "Ergebnis + Zustand" = "dccd"),
+                                                 #                      selected = "cddc"))),
+                                                 fluidRow(
+                                                   column(4, 
+                                                          selectInput("fnet.f_lbl", label = "Häufigkeits Beschriftung", 
+                                                                      choices = list("Standard" = "def", 
+                                                                                     "Nur Namen"     = "nam",
+                                                                                     "Nur Werte"    = "num",
+                                                                                     "Namen + Werte" = "namnum",
+                                                                                     "Abk. Namen"          = "abb",
+                                                                                     "Abk. Namen + Werte" = "abbnum",
+                                                                                     "Keine" = "no"
+                                                                      ), 
+                                                                      selected = "num")),
+                                                   column(4, 
+                                                          selectInput("fnet.p_lbl", label = "Wahrscheinlichkeits Beschriftung", 
+                                                                      choices = list("Standard" = "def",
+                                                                                     "Nur Namen"     = "nam",
+                                                                                     "Nur Werte"    = "num",
+                                                                                     "Namen + Werte" = "namnum",
+                                                                                     "Abk. Namen"     = "abb",
+                                                                                     "Abk. Namen + Werte" = "abbnum",
+                                                                                     "Nur Wichtige Namen"     = "min",
+                                                                                     "Wichtige Namen + Werte"  = "mix", 
+                                                                                     "Keine" = "no"
+                                                                      ), 
+                                                                      selected = "num"))),
+                                                 
+                                                 fluidRow(
+                                                   column(4, checkboxInput("fnet.show_foot", label = "Bemerkungen zeigen", value = FALSE)),
+                                                   column(2, offset = 5, downloadButton("fnet.dl", label = "Save Frequency Net"))) 
                                                ) # wellPanel. 
                                       ), # tabPanel.
                                       
                                       # Table: ------ 
                                       
-                                      tabPanel("Table", 
+                                      tabPanel("Kontingenztabelle", 
                                                br(),
                                                
                                                fluidRow(
@@ -191,54 +245,55 @@ shinyUI(
                                                br(),
                                                
                                                wellPanel(
+                                                 # fluidRow(
+                                                 #   column(4, offset = 0,
+                                                 #          selectInput("table.by", label = "Perspective by", 
+                                                 #                      choices = list("Zustand + Ergebnis" = "cddc",
+                                                 #                                     #"condition x accuracy" = "cdac",
+                                                 #                                     "decision x condition" = "dccd"#,
+                                                 #                                     #"decision x accuracy"  = "dcac",
+                                                 #                                     #"accuracy x condition" = "accd",
+                                                 #                                     #"accuracy x decision"  = "acdc"
+                                                 #                                     ),
+                                                 #                      selected = "cddc")
+                                                 #   ),
+                                                 #   column(4, 
+                                                 #          selectInput("table.p_split", label = "Population split", 
+                                                 #                      choices = list("vertical" = "v", 
+                                                 #                                     "horizontal" = "h"), 
+                                                 #                      selected = "v"))),
+                                                 # 
                                                  fluidRow(
-                                                   column(4, offset = 0,
-                                                          selectInput("table.by", label = "Perspective by", 
-                                                                      choices = list("condition x decision" = "cddc",
-                                                                                     "condition x accuracy" = "cdac",
-                                                                                     "decision x condition" = "dccd",
-                                                                                     "decision x accuracy"  = "dcac",
-                                                                                     "accuracy x condition" = "accd",
-                                                                                     "accuracy x decision"  = "acdc"),
-                                                                      selected = "cddc")
-                                                   ),
                                                    column(4, 
-                                                          selectInput("table.p_split", label = "Population split", 
-                                                                      choices = list("vertical" = "v", 
-                                                                                     "horizontal" = "h"), 
-                                                                      selected = "v"))),
-                                                 
-                                                 fluidRow(
-                                                   column(4, 
-                                                          selectInput("table.f_lbl", label = "Frequency labels", 
-                                                                      choices = list("default" = "def", 
-                                                                                     "names only"     = "nam",
-                                                                                     "values only"    = "num",
-                                                                                     "names + values" = "namnum",
-                                                                                     "abbr. names only"     = "abb",
-                                                                                     "abbr. names + values" = "abbnum",
-                                                                                     "none" = "no"), 
+                                                          selectInput("table.f_lbl", label = "Häufigkeits Beschriftung", 
+                                                                      choices = list("Standard" = "def", 
+                                                                                     "Nur Namen"     = "nam",
+                                                                                     "Nur Werte"    = "num",
+                                                                                     "Namen + Werte" = "namnum",
+                                                                                     "Abk. Namen"     = "abb",
+                                                                                     "Abk. Namen + Werte" = "abbnum",
+                                                                                     "Keine" = "no"), 
                                                                       selected = "num")),
                                                    column(4, 
-                                                          selectInput("table.p_lbl", label = "Probability labels", 
-                                                                      choices = list("none" = "NA",
-                                                                                     "names only"     = "nam",
-                                                                                     "values only"    = "num",
-                                                                                     "names + values" = "namnum",
-                                                                                     "abbr. names only"     = "abb",
-                                                                                     "abbr. names + values" = "abbnum",
-                                                                                     "no labels" = "no"), 
-                                                                      selected = "none"))),
+                                                          selectInput("table.p_lbl", label = "Wahrscheinlichkeits Beschriftung", 
+                                                                      choices = list("Keine" = "NA",
+                                                                                     "Nur Namen"     = "nam",
+                                                                                     "Nur Werte"    = "num",
+                                                                                     "Namen + Werte" = "namnum",
+                                                                                     "Abk. Namen"     = "abb",
+                                                                                     "Abk. Namen + Werte" = "abbnum",
+                                                                                     "Keine" = "no"), 
+                                                                      selected = "Keine"))),
                                                  
                                                  fluidRow(
-                                                   column(4, checkboxInput("table.show_foot", label = "Show margin notes", value = FALSE)),
+                                                   column(4, checkboxInput("table.show_foot", label = "Bemerkungen zeigen", value = FALSE)),
                                                    column(2, offset = 5, downloadButton("table.dl", label = "Save table")))
                                                ) # wellPanel. 
                                       ), # tabPanel.
                                       
                                       # Area: ------  
                                       
-                                      tabPanel("Area", 
+                                      tabPanel("Flächendiagram", 
                                                br(),
                                                
                                                fluidRow(
@@ -247,53 +302,54 @@ shinyUI(
                                                
                                                wellPanel(
                                                  fluidRow(
-                                                   column(4, offset = 0,
-                                                          selectInput("area.by", label = "Perspective by", 
-                                                                      choices = list("condition x decision" = "cddc",
-                                                                                     "condition x accuracy" = "cdac",
-                                                                                     "decision x condition" = "dccd",
-                                                                                     "decision x accuracy"  = "dcac",
-                                                                                     "accuracy x condition" = "accd",
-                                                                                     "accuracy x decision"  = "acdc"),
-                                                                      selected = "cddc")),
+                                                   # column(4, offset = 0,
+                                                   #        selectInput("area.by", label = "Perspective by", 
+                                                   #                    choices = list("Zustand + Ergebnis" = "cddc",
+                                                   #                                   #"condition x accuracy" = "cdac",
+                                                   #                                   "decision x condition" = "dccd"#,
+                                                   #                                   #"decision x accuracy"  = "dcac",
+                                                   #                                   #"accuracy x condition" = "accd",
+                                                   #                                   #"accuracy x decision"  = "acdc"
+                                                   #                                   ),
+                                                   #                    selected = "cddc")),
                                                    column(4, 
-                                                          selectInput("area.p_split", label = "Split by", 
-                                                                      choices = list("vertical"   = "v", 
-                                                                                     "horizontal" = "h"), 
-                                                                      selected = "v"))),
+                                                          selectInput("area.p_split", label = "Aufteilung", 
+                                                                      choices = list("Verktikal"   = "v", 
+                                                                                     "Horizontal" = "h"), 
+                                                                      selected = "v")),
                                                  
-                                                 fluidRow(
+                                                 #fluidRow(
                                                    column(4, 
-                                                          selectInput("area.f_lbl", label = "Frequency labels", 
-                                                                      choices = list("default" = "def", 
-                                                                                     "names only"     = "nam",
-                                                                                     "values only"    = "num",
-                                                                                     "names + values" = "namnum",
-                                                                                     "abbr. names only"     = "abb",
-                                                                                     "abbr. names + values" = "abbnum",
-                                                                                     "none" = "no"), 
+                                                          selectInput("area.f_lbl", label = "Häufigkeits Beschriftung", 
+                                                                      choices = list("Standard" = "def", 
+                                                                                     "Nur Namen"     = "nam",
+                                                                                     "Nur Werte"    = "num",
+                                                                                     "Namen + Werte" = "namnum",
+                                                                                     "Abk. Namen"     = "abb",
+                                                                                     "Abk. Namen + Werte" = "abbnum",
+                                                                                     "Keine" = "no"), 
                                                                       selected = "num")),
                                                    column(4, 
-                                                          selectInput("area.p_lbl", label = "Probability labels", 
-                                                                      choices = list("none" = "NA",
-                                                                                     "names only"     = "nam",
-                                                                                     "values only"    = "num",
-                                                                                     "names + values" = "namnum",
-                                                                                     "abbr. names only"     = "abb",
-                                                                                     "abbr. names + values" = "abbnum",
-                                                                                     "no labels" = "no"), 
-                                                                      selected = "none"))),
+                                                          selectInput("area.p_lbl", label = "Wahrscheinlichkeits Beschriftung", 
+                                                                      choices = list("Keine" = "NA",
+                                                                                     "Nur Namen"     = "nam",
+                                                                                     "Nur Werte"    = "num",
+                                                                                     "Namen + Werte" = "namnum",
+                                                                                     "Abk. Namen"     = "abb",
+                                                                                     "Abk. Namen + Werte" = "abbnum",
+                                                                                     "Keine" = "no"), 
+                                                                      selected = "Keine"))),
                                                  
                                                  fluidRow(
-                                                   column(6, sliderInput("area.sum_w", "Marginal sum width", value = 0, min = 0, max = 100, step = 5, pre = NULL, post = "%")),
-                                                   column(3, checkboxInput("area.show_foot", label = "Show margin notes", value = FALSE)),
+                                                   column(6, sliderInput("area.sum_w", "Größe Randsummen", value = 0, min = 0, max = 100, step = 5, pre = NULL, post = "%")),
+                                                   column(3, checkboxInput("area.show_foot", label = "Bemerkungen zeigen", value = FALSE)),
                                                    column(2, offset = 0, downloadButton("area.dl", label = "Save area")))
                                                ) # wellPanel. 
                                       ), # tabPanel.
                                       
                                       # Icons: ---- 
                                       
-                                      tabPanel("Icons", 
+                                      tabPanel("Häufigkeitsdiagram", 
                                                br(), 
                                                
                                                fluidRow(
@@ -339,57 +395,57 @@ shinyUI(
                                                                       selected = "22"))),
                                                  
                                                  fluidRow(
-                                                   column(4, checkboxInput("icons.show_foot", label = "Show margin notes", value = FALSE)),
+                                                   column(4, checkboxInput("icons.show_foot", label = "Bemerkungen zeigen", value = FALSE)),
                                                    column(2, offset = 5, downloadButton("icons.dl", label = "Save icons")))
                                                )
                                       ),
                                       
-                                      # Bars: ------  
-                                      
-                                      tabPanel("Bars", 
-                                               br(),
-                                               
-                                               fluidRow(
-                                                 column(8, offset = 0, plotOutput("bar", width = "600", height = "450"))),
-                                               br(),
-                                               
-                                               wellPanel(
-                                                 fluidRow(
-                                                   column(4, offset = 0,
-                                                          selectInput("bar.by", label = "Perspective by", 
-                                                                      choices = list("condition" = "cd",
-                                                                                     "decision"  = "dc",
-                                                                                     "accuracy"  = "ac",
-                                                                                     "all" = "all"),
-                                                                      selected = "all")),
-                                                   column(4, 
-                                                          selectInput("bar.dir", label = "Directions", 
-                                                                      choices = list("uni-directional" = 1, 
-                                                                                     "bi-directional"  = 2), 
-                                                                      selected = 1)),
-                                                   column(3, 
-                                                          selectInput("bar.f_lbl", label = "Labels", 
-                                                                      choices = list("default" = "def", 
-                                                                                     "abbr. names" = "abb",
-                                                                                     "names only" = "nam",
-                                                                                     "values only" = "num", 
-                                                                                     "names + values" = "namnum", 
-                                                                                     "no labels" = "no"), 
-                                                                      selected = "num"))),
-                                                 
-                                                 fluidRow(
-                                                   column(4, offset = 0, 
-                                                          checkboxInput("bar.scale_f", label = "Scale by frequencies", value = TRUE)),
-                                                   column(4, offset = 0, 
-                                                          checkboxInput("bar.show_foot", label = "Show margin notes", value = FALSE)),
-                                                   column(2, offset = 1, 
-                                                          downloadButton("bar.dl", label = "Save bars")))
-                                               ) # wellPanel. 
-                                      ), # tabPanel.
-                                      
+                                      # # Bars: ------  
+                                      # 
+                                      # tabPanel("Säulendiagramm", 
+                                      #          br(),
+                                      #          
+                                      #          fluidRow(
+                                      #            column(8, offset = 0, plotOutput("bar", width = "600", height = "450"))),
+                                      #          br(),
+                                      #          
+                                      #          wellPanel(
+                                      #            # fluidRow(
+                                      #            #   column(4, offset = 0,
+                                      #            #          selectInput("bar.by", label = "Perspective by", 
+                                      #            #                      choices = list("condition" = "cd",
+                                      #            #                                     "decision"  = "dc",
+                                      #            #                                     "accuracy"  = "ac",
+                                      #            #                                     "all" = "all"),
+                                      #            #                      selected = "all")),
+                                      #            #   column(4, 
+                                      #            #          selectInput("bar.dir", label = "Directions", 
+                                      #            #                      choices = list("uni-directional" = 1, 
+                                      #            #                                     "bi-directional"  = 2), 
+                                      #            #                      selected = 1)),
+                                      #            #   column(3, 
+                                      #            #          selectInput("bar.f_lbl", label = "Labels", 
+                                      #            #                      choices = list("Standard" = "def", 
+                                      #            #                                     "Abk. Namen" = "abb",
+                                      #            #                                     "Nur Namen" = "nam",
+                                      #            #                                     "Nur Werte" = "num", 
+                                      #            #                                     "Namen + Werte" = "namnum", 
+                                      #            #                                     "Keine" = "no"), 
+                                      #            #                      selected = "num"))),
+                                      #            
+                                      #            fluidRow(
+                                      #              # column(4, offset = 0, 
+                                      #              #        checkboxInput("bar.scale_f", label = "Scale by frequencies", value = TRUE)),
+                                      #              column(4, offset = 0, 
+                                      #                     checkboxInput("bar.show_foot", label = "Bemerkungen zeigen", value = FALSE)),
+                                      #              column(2, offset = 1, 
+                                      #                     downloadButton("bar.dl", label = "Save bars")))
+                                      #          ) # wellPanel. 
+                                      # ), # tabPanel.
+                                      # 
                                       # Curves: ------ 
                                       
-                                      tabPanel("Curves", 
+                                      tabPanel("Verläufe", 
                                                br(),
                                                
                                                fluidRow(
@@ -405,102 +461,102 @@ shinyUI(
                                                  
                                                  fluidRow(
                                                    column(3, offset = 0, checkboxInput("curve.show_points", label = "Show point values", value = TRUE)),
-                                                   column(3, checkboxInput("curve.show_foot", label = "Show margin notes", value = FALSE)), 
+                                                   column(3, checkboxInput("curve.show_foot", label = "Bemerkungen zeigen", value = FALSE)), 
                                                    column(6, checkboxInput("curve.log_scale", label = "Prevalence on logarithmic scale", value = FALSE))),
                                                  
                                                  fluidRow(
                                                    column(8, sliderInput("curve.uc", "Uncertainty", value = 0, min = 0, max = 50, step = 1, pre = NULL, post = "%")),
                                                    column(2, offset = 1, downloadButton("curve.dl", label = "Save curves")))
                                                ) # wellPanel. 
-                                      ), # tabPanel.
+                                      )#, # tabPanel.
                                       
                                       # Planes: ------ 
                                       
-                                      tabPanel("Planes", 
-                                               br(),
-                                               
-                                               fluidRow(
-                                                 column(6, plotOutput("plane.ppv")),
-                                                 column(6, plotOutput("plane.npv"))),
-                                               br(),
-                                               
-                                               wellPanel(
-                                                 fluidRow(
-                                                   column(6, sliderInput("theta", "Horizontal viewing angle", value = -45, min = -90, max = +90)),
-                                                   column(6, sliderInput("phi", "Vertical viewing angle", value = 0, min = 0, max =  90))),
-                                                 
-                                                 fluidRow(
-                                                   column(6, checkboxInput("plane.show_point", label = "Show current PPV/NPV in plots", value = TRUE)),
-                                                   column(6, checkboxInput("plane.show_foot",  label = "Show margin notes", value = FALSE))),
-                                                 
-                                                 fluidRow(
-                                                   column(2, offset = 3, downloadButton("plane.ppv.dl", label = "Save PPV plane")),
-                                                   column(2, offset = 4, downloadButton("plane.npv.dl", label = "Save NPV plane")))
-                                               ) # wellPanel. 
-                                      ), # tabPanel.
+                                      # tabPanel("Planes", 
+                                      #          br(),
+                                      #          
+                                      #          fluidRow(
+                                      #            column(6, plotOutput("plane.ppv")),
+                                      #            column(6, plotOutput("plane.npv"))),
+                                      #          br(),
+                                      #          
+                                      #          wellPanel(
+                                      #            fluidRow(
+                                      #              column(6, sliderInput("theta", "Horizontal viewing angle", value = -45, min = -90, max = +90)),
+                                      #              column(6, sliderInput("phi", "Vertical viewing angle", value = 0, min = 0, max =  90))),
+                                      #            
+                                      #            fluidRow(
+                                      #              column(6, checkboxInput("plane.show_point", label = "Show current PPV/NPV in plots", value = TRUE)),
+                                      #              column(6, checkboxInput("plane.show_foot",  label = "Bemerkungen zeigen", value = FALSE))),
+                                      #            
+                                      #            fluidRow(
+                                      #              column(2, offset = 3, downloadButton("plane.ppv.dl", label = "Save PPV plane")),
+                                      #              column(2, offset = 4, downloadButton("plane.npv.dl", label = "Save NPV plane")))
+                                      #          ) # wellPanel. 
+                                      # ), # tabPanel.
                                       
                                       # Contrast 4 representations: ------
                                       
-                                      tabPanel("Compare", 
-                                               br(),
-                                               
-                                               fluidRow(
-                                                 column(6, plotOutput("represent1", width = "515", height = "350")),
-                                                 column(6, plotOutput("represent2", width = "515", height = "350")),
-                                                 column(6, plotOutput("represent3", width = "515", height = "350")),
-                                                 column(6, plotOutput("represent4", width = "515", height = "350"))),
-                                               br(),
-                                               
-                                               wellPanel(
-                                                 fluidRow(
-                                                   column(3, offset = 0, 
-                                                          selectInput("represent1", label = "Plot 1", 
-                                                                      choices = list("Prism" = "prism", 
-                                                                                     "Table" = "table",
-                                                                                     "Area" = "area",
-                                                                                     "Icons" = "icons",
-                                                                                     "Bars" = "bar",
-                                                                                     "Curves" = "curve",
-                                                                                     "Plane PPV" = "plane.ppv",
-                                                                                     "Plane NPV" = "plane.npv"),
-                                                                      selected = "table")),
-                                                   column(3, offset = 3, 
-                                                          selectInput("represent2", label = "Plot 2", 
-                                                                      choices = list("Prism" = "prism", 
-                                                                                     "Table" = "table",
-                                                                                     "Area" = "area",
-                                                                                     "Icons" = "icons",
-                                                                                     "Bars" = "bar",
-                                                                                     "Curves" = "curve",
-                                                                                     "Plane PPV" = "plane.ppv",
-                                                                                     "Plane NPV" = "plane.npv"),
-                                                                      selected = "prism"))),
-                                                 
-                                                 fluidRow(
-                                                   column(3, offset = 0, 
-                                                          selectInput("represent3", label = "Plot 3", 
-                                                                      choices = list("Prism" = "prism", 
-                                                                                     "Table" = "table",
-                                                                                     "Area" = "area",
-                                                                                     "Icons" = "icons",
-                                                                                     "Bars" = "bar",
-                                                                                     "Curves" = "curve",
-                                                                                     "Plane PPV" = "plane.ppv",
-                                                                                     "Plane NPV" = "plane.npv"),
-                                                                      selected = "area")),
-                                                   column(3, offset = 3, 
-                                                          selectInput("represent4", label = "Plot 4", 
-                                                                      choices = list("Prism" = "prism", 
-                                                                                     "Table" = "table",
-                                                                                     "Area" = "area",
-                                                                                     "Icons" = "icons",
-                                                                                     "Bars" = "bar",
-                                                                                     "Curves" = "curve",
-                                                                                     "Plane PPV" = "plane.ppv",
-                                                                                     "Plane NPV" = "plane.npv"),
-                                                                      selected = "icons")))
-                                               ) # wellPanel. 
-                                      ) # tabPanel.
+                                      # tabPanel("Compare", 
+                                      #          br(),
+                                      #          
+                                      #          fluidRow(
+                                      #            column(6, plotOutput("represent1", width = "515", height = "350")),
+                                      #            column(6, plotOutput("represent2", width = "515", height = "350")),
+                                      #            column(6, plotOutput("represent3", width = "515", height = "350")),
+                                      #            column(6, plotOutput("represent4", width = "515", height = "350"))),
+                                      #          br(),
+                                      #          
+                                      #          wellPanel(
+                                      #            fluidRow(
+                                      #              column(3, offset = 0, 
+                                      #                     selectInput("represent1", label = "Plot 1", 
+                                      #                                 choices = list("Prism" = "prism", 
+                                      #                                                "Table" = "table",
+                                      #                                                "Area" = "area",
+                                      #                                                "Icons" = "icons",
+                                      #                                                "Bars" = "bar",
+                                      #                                                "Curves" = "curve",
+                                      #                                                "Plane PPV" = "plane.ppv",
+                                      #                                                "Plane NPV" = "plane.npv"),
+                                      #                                 selected = "table")),
+                                      #              column(3, offset = 3, 
+                                      #                     selectInput("represent2", label = "Plot 2", 
+                                      #                                 choices = list("Prism" = "prism", 
+                                      #                                                "Table" = "table",
+                                      #                                                "Area" = "area",
+                                      #                                                "Icons" = "icons",
+                                      #                                                "Bars" = "bar",
+                                      #                                                "Curves" = "curve",
+                                      #                                                "Plane PPV" = "plane.ppv",
+                                      #                                                "Plane NPV" = "plane.npv"),
+                                      #                                 selected = "prism"))),
+                                      #            
+                                      #            fluidRow(
+                                      #              column(3, offset = 0, 
+                                      #                     selectInput("represent3", label = "Plot 3", 
+                                      #                                 choices = list("Prism" = "prism", 
+                                      #                                                "Table" = "table",
+                                      #                                                "Area" = "area",
+                                      #                                                "Icons" = "icons",
+                                      #                                                "Bars" = "bar",
+                                      #                                                "Curves" = "curve",
+                                      #                                                "Plane PPV" = "plane.ppv",
+                                      #                                                "Plane NPV" = "plane.npv"),
+                                      #                                 selected = "area")),
+                                      #              column(3, offset = 3, 
+                                      #                     selectInput("represent4", label = "Plot 4", 
+                                      #                                 choices = list("Prism" = "prism", 
+                                      #                                                "Table" = "table",
+                                      #                                                "Area" = "area",
+                                      #                                                "Icons" = "icons",
+                                      #                                                "Bars" = "bar",
+                                      #                                                "Curves" = "curve",
+                                      #                                                "Plane PPV" = "plane.ppv",
+                                      #                                                "Plane NPV" = "plane.npv"),
+                                      #                                 selected = "icons")))
+                                      #          ) # wellPanel. 
+                                      # ) # tabPanel.
                           )
                         )
                       )
@@ -508,7 +564,7 @@ shinyUI(
              
              # 2. Customize text labels: ------ 
              
-             tabPanel("Customize labels",
+             tabPanel("Beschriftungen anpassen",
                       icon = icon("pencil", lib = "glyphicon"), value = "custom_labels",
                       
                       sidebarLayout(
@@ -516,12 +572,12 @@ shinyUI(
                         # A. Sidebar panel for text inputs: ------ 
                         sidebarPanel(
                           # Inputs for label customization:
-                          h3("Use your own labels"),
+                          h3("Eigene Beschriftungen verwenden"),
                           br(),
                           
                           fluidRow(
                             column(7, textInput("scen_lbl",
-                                                label = "Scenario title",
+                                                label = "Titel des Szenarios",
                                                 value = default.labels$scen_lbl))#,
                             
                             # column(7, textInput("scen_txt",
@@ -543,42 +599,42 @@ shinyUI(
                           
                           fluidRow(
                             column(4, textInput("cond_lbl",
-                                                label = "Condition",
+                                                label = "Zustand",
                                                 value = default.labels$cond_lbl)),
                             column(3, textInput("cond_true_lbl",
-                                                label = "cond_true",
+                                                label = "Wahrer Zustand",
                                                 value = default.labels$cond_true_lbl)),
                             column(3, textInput("cond_false_lbl",
-                                                label = "cond_false",
+                                                label = "Falscher Zustand",
                                                 value = default.labels$cond_false_lbl))),
                           # br(),
                           
                           fluidRow(
                             column(4, textInput("dec_lbl",
-                                                label = "Decision",
+                                                label = "Entscheidung",
                                                 value = default.labels$dec_lbl)),
                             column(3, textInput("dec_pos_lbl",
-                                                label = "dec_pos",
+                                                label = "Entscheidung positiv",
                                                 value = default.labels$dec_pos_lbl)),
                             column(3, textInput("dec_neg_lbl",
-                                                label = "dec_neg",
+                                                label = "Entscheidung negativ",
                                                 value = default.labels$dec_neg_lbl))),
                           # br(),
                           
                           fluidRow(
                             column(4, textInput("acc_lbl",
-                                                label = "Accuracy",
+                                                label = "Genauigkeit",
                                                 value = default.labels$acc_lbl)),
                             column(3, textInput("dec_cor_lbl",
-                                                label = "dec_cor",
+                                                label = "Entscheidung richtig",
                                                 value = default.labels$dec_cor_lbl)),
                             column(3, textInput("dec_err_lbl",
-                                                label = "dec_err",
+                                                label = "Entscheidung falsch",
                                                 value = default.labels$dec_err_lbl))), 
                           br(), 
                           
                           fluidRow(
-                            column(4, textInput("sdt_lbl", label = "Cases",value = default.labels$sdt_lbl)),
+                            column(4, textInput("sdt_lbl", label = "Fälle",value = default.labels$sdt_lbl)),
                             column(3, textInput("hi_lbl", label = "hi (TP)", value = default.labels$hi_lbl)),
                             column(3, textInput("fa_lbl", label = "fa (FP)", value = default.labels$fa_lbl))), 
                           
@@ -592,20 +648,20 @@ shinyUI(
                           
                           fluidRow(
                             column(5,     
-                                   bsButton("resetcustomlabel", label = "Reset default",
+                                   bsButton("resetcustomlabel", label = "Standard wiederherstellen",
                                             icon = icon("refresh", lib = "glyphicon"),
-                                            style = "default", type = "action")),
+                                            style = "Standard", type = "action")),
                             column(3, offset = 1,     
-                                   bsButton("help_custom_labels", label = "Help",
+                                   bsButton("help_custom_labels", label = "Hilfe",
                                             icon = icon("question-sign", lib = "glyphicon"),
-                                            style = "default", type = "action")))
+                                            style = "Standard", type = "action")))
                         ), # sidebarPanel.
                         
                         # B. Main panel: Preview plots for current text labels: ------ 
                         mainPanel(
                           br(),
                           
-                          h3("Preview of current labels"),
+                          h3("Vorschau Beschriftung"),
                           
                           fluidRow(
                             column(6, plotOutput("preview_labels_prism", width = "500", height = "400"))),  # prism by cddc
@@ -618,7 +674,7 @@ shinyUI(
              
              # 3. Customize colors: ------- 
              
-             tabPanel("Customize colors",
+             tabPanel("Farben anpassen",
                       icon = icon("wrench", lib = "glyphicon"),
                       value = "custom_colors",
                       sidebarLayout(
@@ -626,7 +682,7 @@ shinyUI(
                         # A. Sidebar panel for color inputs: ------
                         sidebarPanel(
                           # Inputs for color customization:
-                          h3("Use your own colors"),
+                          h3("Eigene Farben verwenden"),
                           br(), br(),
                           
                           fluidRow(
@@ -686,12 +742,12 @@ shinyUI(
                             column(6, colourInput("color.txt", label = "Text",
                                                   value = default.colors["txt"], showColour = "background",
                                                   palette = "square", allowedCols = NULL)),
-                            column(6, colourInput("color.brd", label = "Lines",
+                            column(6, colourInput("color.brd", label = "Linien",
                                                   value = default.colors["brd"], showColour = "background",
                                                   palette = "square", allowedCols = NULL))),
                           
                           fluidRow(
-                            column(6, colourInput("color.bg", label = "Background",
+                            column(6, colourInput("color.bg", label = "Hintergrund",
                                                   value = default.colors["bg"], showColour = "background",
                                                   palette = "square", allowedCols = NULL))),
                     
@@ -699,8 +755,8 @@ shinyUI(
                           
                           fluidRow(
                             column(7,
-                                   selectInput("alt.palette", label = "Color palette",
-                                               choices = list("---" = "default",
+                                   selectInput("alt.palette", label = "Farbpalette",
+                                               choices = list("---" = "Standard",
                                                               "modern colors"   = "pal_mod",
                                                               "mod/bw colors"   = "pal_mbw",
                                                               "original colors" = "pal_org",
@@ -716,13 +772,13 @@ shinyUI(
                           
                           fluidRow(
                             column(5,                          
-                                   bsButton("resetcustomcolor", label = "Reset default",
+                                   bsButton("resetcustomcolor", label = "Standard wiederherstellen",
                                             icon = icon("refresh", lib = "glyphicon"),
-                                            style = "default", type = "action")),
+                                            style = "Standard", type = "action")),
                             column(3, offset = 1,  
-                                   bsButton("help_custom_colors", label = "Help",
+                                   bsButton("help_custom_colors", label = "Hilfe",
                                             icon = icon("question-sign", lib = "glyphicon"),
-                                            style = "default", type = "action")))
+                                            style = "Standard", type = "action")))
                           
                         ), # sidebarPanel.
                         
@@ -730,7 +786,7 @@ shinyUI(
                         mainPanel(
                           br(),
                           
-                          h3("Preview of current colors"),
+                          h3("Vorschau Farbe"),
                           
                           fluidRow(
                             column(6, plotOutput("preview_colors_table", width = "450", height = "280"))), # table by cddc
@@ -745,16 +801,16 @@ shinyUI(
                         
                       )),
              
-             navbarMenu("About",  icon = icon("info-sign", lib = "glyphicon"),
+             navbarMenu("Über",  icon = icon("info-sign", lib = "glyphicon"),
                         
                         # spacer
                         "----",
                         
                         # 1st screen in dropdown navigation:
-                        tabPanel("Readings & References",
+                        tabPanel("Literatur und Referenzen",
                                  icon = icon("book", lib = "glyphicon"),
                                  value = "references",
-                                 h1("Readings and references"),
+                                 h1("Literatur und Referenzen"),
                                  
                                  fluidRow(
                                    column(5, offset = 0, includeMarkdown("www/recommended_readings.md")),
@@ -764,9 +820,9 @@ shinyUI(
                         "----",
                         
                         # 2nd screen in dropdown navigation:
-                        tabPanel("Imprint", value = "about",
+                        tabPanel("Impressum", value = "about",
                                  icon = icon("pushpin", lib = "glyphicon"),
-                                 h1("Imprint"),
+                                 h1("Impressum"),
                                  
                                  br(),
                                  includeMarkdown("www/imprint.md")),

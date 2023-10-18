@@ -1,10 +1,5 @@
 # server.R
 # riskyrApp | R Shiny | spds, uni.kn | 2019 02 05
-
-## Clean up: ------
-
-rm(list=ls()) # clean all.
-
 ## Dependencies: ------
 
 library("shiny")
@@ -15,22 +10,24 @@ library("shinyWidgets")
 
 ## Install/load current version of riskyr: ------
 # detach("package:riskyr", unload = TRUE)
+# from CRAN: <https://CRAN.R-project.org/package=riskyr>
 # devtools::install_github("hneth/riskyr")
 library("riskyr")
-# sessionInfo()
-
-## Import data (example scenarios) and default colors and labels: ------
-
-datasets <- read.csv2("./www/df_scenarios.csv", stringsAsFactors = FALSE)  # 2018 12 30
 
 
-# Default color palette and text labels: 
+## Import data (example scenarios): ------
+datasets <- read.csv2("./www/df_scenarios2.csv", stringsAsFactors = FALSE)
+datasets <- datasets[datasets$scen_lng == "de", ]
+datasets$nr <- 1:nrow(datasets)
+row.names(datasets) <- datasets$nr
+
+# Default color palette and text labels: ------ 
 default.colors <- pal_mod  # init_pal() 
 default.labels <- txt_TF   # init_txt()
 
-# Reactive color palette and text labels: 
-riskyr.colors <- reactive({ pal_mod })  # reactive({ init_pal() })
-riskyr.labels <- reactive({ txt_TF })   # reactive({ init_txt() })
+# German labels
+assignInNamespace("lbl", riskyr:::lbl_de, ns = "riskyr", pos = "package:riskyr")
+
 
 ## Define server logic: ------ 
 
@@ -206,7 +203,7 @@ shinyServer(function(input, output, session){
   
   observeEvent(
     input$dataselection, {
-      if (input$dataselection != 1) { # if 1st option is not ("---")
+      #if (input$dataselection != 1) { # if 1st option is not ("---")
         # update all sliders:
         # updateSliderInput(session, "prev", value = datasets[input$dataselection, "prev"])
         updateNumericInput(session, "numprev", value = datasets[input$dataselection, "prev"] * 100)
@@ -236,7 +233,7 @@ shinyServer(function(input, output, session){
         updateRadioButtons(session, "checkprev", selected = 1)
         updateRadioButtons(session, "checksens", selected = 1)
         updateRadioButtons(session, "checkspec", selected = 1)
-      }
+      #}
     }, ignoreInit = TRUE)
   
   
@@ -267,14 +264,37 @@ shinyServer(function(input, output, session){
       dev.off()}
   )
   
+  # 1. Frequency Net: ------
+  
+  fnet <- function(){
+    plot(riskyr.scenario(), 
+         type  = "fnet",
+         col_pal = riskyr.colors(),
+         # lbl_txt = riskyr.labels(),  # integral part of riskyr.scenario!
+         by = "cddc",
+         f_lbl = input$fnet.f_lbl,
+         p_lbl = input$fnet.p_lbl,
+         mar_notes = input$fnet.show_foot
+    )
+  }
+  
+  output$fnet <- renderPlot({ fnet() }) 
+  
+  output$fnet.dl <- downloadHandler(
+    filename = function() {paste0("riskyrApp_fnet_", gsub(":", "-", Sys.time()), ".png")},
+    content =  function(file){
+      png(file, width = 600, height = 450)
+      fnet()
+      dev.off()}
+  )
+  
   # 2. Table: ------
   
   table <- function(){
     plot(riskyr.scenario(), 
          type  = "table",
          col_pal = riskyr.colors(),
-         by = input$table.by,
-         p_split = input$table.p_split,
+         by = "cddc",
          f_lbl = input$table.f_lbl,
          p_lbl = input$table.p_lbl, 
          mar_notes = input$table.show_foot
@@ -297,7 +317,7 @@ shinyServer(function(input, output, session){
     plot(riskyr.scenario(), 
          type  = "area",
          col_pal = riskyr.colors(),
-         by = input$area.by,
+         by = "cddc",
          p_split = input$area.p_split,
          f_lbl = input$area.f_lbl,
          p_lbl = input$area.p_lbl,
@@ -340,29 +360,29 @@ shinyServer(function(input, output, session){
       dev.off()}
   )
   
-  # 5. Bars: ------  
-  
-  bar <- function(){
-    plot(riskyr.scenario(), 
-         type  = "bar",
-         col_pal = riskyr.colors(),
-         by = input$bar.by,
-         dir = input$bar.dir,
-         f_lbl = input$bar.f_lbl, 
-         scale = (if (input$bar.scale_f) "f" else "p"), 
-         mar_notes = input$bar.show_foot
-    )
-  }
-  
-  output$bar <- renderPlot({ bar() }) 
-  
-  output$bar.dl <- downloadHandler(
-    filename = function() {paste0("riskyrApp_bar_", gsub(":", "-", Sys.time()), ".png")},
-    content =  function(file){
-      png(file, width = 600, height = 450)
-      bar()
-      dev.off()}
-  )
+  # # 5. Bars: ------  
+  # 
+  # bar <- function(){
+  #   plot(riskyr.scenario(), 
+  #        type  = "bar",
+  #        col_pal = riskyr.colors(),
+  #        by = "all",
+  #        dir = 1,
+  #        f_lbl = "num", 
+  #        scale = "p", 
+  #        mar_notes = input$bar.show_foot
+  #   )
+  # }
+  # 
+  # output$bar <- renderPlot({ bar() }) 
+  # 
+  # output$bar.dl <- downloadHandler(
+  #   filename = function() {paste0("riskyrApp_bar_", gsub(":", "-", Sys.time()), ".png")},
+  #   content =  function(file){
+  #     png(file, width = 600, height = 450)
+  #     bar()
+  #     dev.off()}
+  # )
   
   # 6. Curves: ------ 
   
@@ -388,105 +408,105 @@ shinyServer(function(input, output, session){
       dev.off()}
   )
   
-  # 7. Planes: ------ 
-  
-  plane.ppv <- function(){
-    plot(riskyr.scenario(),
-         type = "plane",
-         what = "PPV",
-         col_pal = riskyr.colors(),
-         show_point = input$plane.show_point,
-         theta = input$theta, 
-         phi = input$phi,
-         mar_notes = input$plane.show_foot
-    ) 
-  }
-  
-  output$plane.ppv <- renderPlot({ plane.ppv() })
-  
-  output$plane.ppv.dl <- downloadHandler(
-    filename = function() {paste0("riskyrApp_PPV-plane_", gsub(":", "-", Sys.time()), ".png")},
-    content =  function(file){
-      png(file, width = 600, height = 450)
-      plane.ppv()
-      dev.off()}
-  )
-  
-  plane.npv <- function(){
-    plot(riskyr.scenario(),
-         type = "plane",
-         what = "NPV",
-         col_pal = riskyr.colors(),
-         show_point = input$plane.show_point,
-         theta = input$theta, 
-         phi = input$phi,
-         mar_notes = input$plane.show_foot
-    ) 
-  }
-  
-  output$plane.npv <- renderPlot({ plane.npv() })
-  
-  output$plane.npv.dl <- downloadHandler(
-    filename = function() {paste0("riskyrApp_NPV-plane_", gsub(":", "-", Sys.time()), ".png")},
-    content =  function(file){
-      png(file, width = 600, height = 450)
-      plane.npv()
-      dev.off()}
-  )
-  
-  # 8. Contrasting representations: ------ 
-  
-  output$represent1 <- renderPlot({
-    switch(input$represent1,
-           prism = prism(),
-           table = table(),
-           area = area(),
-           icons = icons(),
-           bar = bar(),
-           curve = curve(),
-           plane.ppv = plane.ppv(),
-           plane.npv = plane.npv()
-    )
-  })
-  
-  output$represent2 <- renderPlot({
-    switch(input$represent2,
-           prism = prism(),
-           table = table(),
-           area = area(),
-           icons = icons(),
-           bar = bar(),
-           curve = curve(),
-           plane.ppv = plane.ppv(),
-           plane.npv = plane.npv()
-    )
-  })
-  
-  output$represent3 <- renderPlot({
-    switch(input$represent3,
-           prism = prism(),
-           table = table(),
-           area = area(),
-           icons = icons(),
-           bar = bar(),
-           curve = curve(),
-           plane.ppv = plane.ppv(),
-           plane.npv = plane.npv()
-    )
-  })
-  
-  output$represent4 <- renderPlot({
-    switch(input$represent4,
-           prism = prism(),
-           table = table(),
-           area = area(),
-           icons = icons(),
-           bar = bar(),
-           curve = curve(),
-           plane.ppv = plane.ppv(),
-           plane.npv = plane.npv()
-    )
-  })
+  # # 7. Planes: ------ 
+  # 
+  # plane.ppv <- function(){
+  #   plot(riskyr.scenario(),
+  #        type = "plane",
+  #        what = "PPV",
+  #        col_pal = riskyr.colors(),
+  #        show_point = input$plane.show_point,
+  #        theta = input$theta, 
+  #        phi = input$phi,
+  #        mar_notes = input$plane.show_foot
+  #   ) 
+  # }
+  # 
+  # output$plane.ppv <- renderPlot({ plane.ppv() })
+  # 
+  # output$plane.ppv.dl <- downloadHandler(
+  #   filename = function() {paste0("riskyrApp_PPV-plane_", gsub(":", "-", Sys.time()), ".png")},
+  #   content =  function(file){
+  #     png(file, width = 600, height = 450)
+  #     plane.ppv()
+  #     dev.off()}
+  # )
+  # 
+  # plane.npv <- function(){
+  #   plot(riskyr.scenario(),
+  #        type = "plane",
+  #        what = "NPV",
+  #        col_pal = riskyr.colors(),
+  #        show_point = input$plane.show_point,
+  #        theta = input$theta, 
+  #        phi = input$phi,
+  #        mar_notes = input$plane.show_foot
+  #   ) 
+  # }
+  # 
+  # output$plane.npv <- renderPlot({ plane.npv() })
+  # 
+  # output$plane.npv.dl <- downloadHandler(
+  #   filename = function() {paste0("riskyrApp_NPV-plane_", gsub(":", "-", Sys.time()), ".png")},
+  #   content =  function(file){
+  #     png(file, width = 600, height = 450)
+  #     plane.npv()
+  #     dev.off()}
+  # )
+  # 
+  # # 8. Contrasting representations: ------ 
+  # 
+  # output$represent1 <- renderPlot({
+  #   switch(input$represent1,
+  #          prism = prism(),
+  #          table = table(),
+  #          area = area(),
+  #          icons = icons(),
+  #          bar = bar(),
+  #          curve = curve(),
+  #          plane.ppv = plane.ppv(),
+  #          plane.npv = plane.npv()
+  #   )
+  # })
+  # 
+  # output$represent2 <- renderPlot({
+  #   switch(input$represent2,
+  #          prism = prism(),
+  #          table = table(),
+  #          area = area(),
+  #          icons = icons(),
+  #          bar = bar(),
+  #          curve = curve(),
+  #          plane.ppv = plane.ppv(),
+  #          plane.npv = plane.npv()
+  #   )
+  # })
+  # 
+  # output$represent3 <- renderPlot({
+  #   switch(input$represent3,
+  #          prism = prism(),
+  #          table = table(),
+  #          area = area(),
+  #          icons = icons(),
+  #          bar = bar(),
+  #          curve = curve(),
+  #          plane.ppv = plane.ppv(),
+  #          plane.npv = plane.npv()
+  #   )
+  # })
+  # 
+  # output$represent4 <- renderPlot({
+  #   switch(input$represent4,
+  #          prism = prism(),
+  #          table = table(),
+  #          area = area(),
+  #          icons = icons(),
+  #          bar = bar(),
+  #          curve = curve(),
+  #          plane.ppv = plane.ppv(),
+  #          plane.npv = plane.npv()
+  #   )
+  # })
   
   ## Customize text labels: ------ 
   
