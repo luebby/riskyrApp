@@ -48,8 +48,7 @@ shinyUI(
     tags$style(HTML(".js-irs-5 .irs-single, .js-irs-5 .irs-bar-edge, .js-irs-5 .irs-bar {background: #008073}")),
     tags$style(HTML(".nav {
                         position: relative;
-                        background-color: #008073;
-                        opacity: 0.6;
+                        background-color: #1aa395;
                         color: white;
                         border-radius: 8px;
                     }")),
