@@ -52,11 +52,7 @@ shinyUI(
                         opacity: 0.6;
                         color: white;
                         border-radius: 8px;
-    }
-                    .nav > .active > a:hover {
-                                color: yellow;
-                                background-color: green;
-                    ")),
+                    }")),
   navbarPage(title = "riskyrApp",
              #theme = "bootstrap.sandstone.css",
              id = "tabs",
