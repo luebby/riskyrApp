@@ -33,7 +33,7 @@ assignInNamespace("lbl", riskyr:::lbl_de, ns = "riskyr", pos = "package:riskyr")
 custom_theme <- bs_theme(
   bg = "white",
   fg = "black",
-  primary = "white"
+  primary = "#94d1ca"
 )
 
 ## Define user interface logic: ------
