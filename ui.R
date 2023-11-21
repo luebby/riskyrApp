@@ -8,6 +8,7 @@ library("shinyBS")
 library("markdown")
 library("colourpicker")
 library("shinyWidgets")
+library("bslib")
 
 ## Install/load current version of riskyr: ------
 # detach("package:riskyr", unload = TRUE)
@@ -28,11 +29,36 @@ default.labels <- txt_TF   # init_txt()
 # German labels
 assignInNamespace("lbl", riskyr:::lbl_de, ns = "riskyr", pos = "package:riskyr")
 
-## Define user interface logic: ------
+# Define custom theme
+custom_theme <- bs_theme(
+  bg = "white",
+  fg = "black",
+  primary = "white"
+)
 
+## Define user interface logic: ------
 shinyUI(
+  fluidPage(
+    theme = custom_theme,
+    tags$style(HTML(".js-irs-0 .irs-single, .js-irs-0 .irs-bar-edge, .js-irs-0 .irs-bar {background: #008073}")),
+    tags$style(HTML(".js-irs-1 .irs-single, .js-irs-1 .irs-bar-edge, .js-irs-1 .irs-bar {background: #008073}")),
+    tags$style(HTML(".js-irs-2 .irs-single, .js-irs-2 .irs-bar-edge, .js-irs-2 .irs-bar {background: #008073}")),
+    tags$style(HTML(".js-irs-3 .irs-single, .js-irs-3 .irs-bar-edge, .js-irs-3 .irs-bar {background: #008073}")),
+    tags$style(HTML(".js-irs-4 .irs-single, .js-irs-4 .irs-bar-edge, .js-irs-4 .irs-bar {background: #008073}")),
+    tags$style(HTML(".js-irs-5 .irs-single, .js-irs-5 .irs-bar-edge, .js-irs-5 .irs-bar {background: #008073}")),
+    tags$style(HTML(".nav {
+                        position: relative;
+                        background-color: #008073;
+                        opacity: 0.6;
+                        color: white;
+                        border-radius: 8px;
+    }
+                    .nav > .active > a:hover {
+                                color: yellow;
+                                background-color: green;
+                    ")),
   navbarPage(title = "riskyrApp",
-             theme = "bootstrap.sandstone.css",
+             #theme = "bootstrap.sandstone.css",
              id = "tabs",
              
              # 1. Tab panel: Visualizations ------ 
@@ -858,6 +884,7 @@ shinyUI(
                        title = "Save current graph as .png file.",
                        placement = "left", trigger = "hover", options = list(container = "body"))
   )
+)
 )
 
 ## eof. ---------- 
