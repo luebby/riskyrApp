@@ -827,15 +827,15 @@ shinyUI(
                         # spacer
                         "----",
                         
-                        # 1st screen in dropdown navigation:
-                        tabPanel("Literatur und Referenzen",
-                                 icon = icon("book", lib = "glyphicon"),
-                                 value = "references",
-                                 h1("Literatur und Referenzen"),
-                                 
-                                 fluidRow(
-                                   column(5, offset = 0, includeMarkdown("www/recommended_readings.md")),
-                                   column(5, offset = 1, includeMarkdown("www/references.md")))),
+                        # # 1st screen in dropdown navigation:
+                        # tabPanel("Literatur und Referenzen",
+                        #          icon = icon("book", lib = "glyphicon"),
+                        #          value = "references",
+                        #          h1("Literatur und Referenzen"),
+                        #          
+                        #          fluidRow(
+                        #            column(5, offset = 0, includeMarkdown("www/recommended_readings.md")),
+                        #            column(5, offset = 1, includeMarkdown("www/references.md")))),
                         
                         # spacer
                         "----",
