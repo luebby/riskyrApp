@@ -857,26 +857,26 @@ shinyUI(
              # On inputs:
              
              bsTooltip(id = list("N", "numN"), 
-                       title = "N of individuals in population",
+                       title = "N Personen aus der Grundgesamtheit",
                        placement = "right", trigger = "hover", options = list(container = "body")),
              
              bsTooltip(id = list("prev", "numprev"),
-                       title = "Probability of condition: p(true)",
+                       title = "Wahrscheinlichkeit des Vorliegens der Bedingung: p(true)",
                        placement = "right", trigger = "hover", options = list(container = "body")),
              
              bsTooltip(id = list("sens", "numsens"),
-                       title = "Probability of correctly detecting true condition: p(decision positive | condition true)",
+                       title = "Wahrscheinlichkeit richtigerweise ein Vorliegen der Bedingung zu erkennen: p(decision positive | condition true)",
                        placement = "right", trigger = "hover", options = list(container = "body")),
              
              bsTooltip(id = list("spec", "numspec"),
-                       title = "Probability of correctly detecting false condition: p(decision negative | condition false)",
+                       title = "Wahrscheinlichkeit richtigerweise ein nicht Vorliegen der Bedingung zu erkennen: p(decision negative | condition false)",
                        placement = "right", trigger = "hover", options = list(container = "body")),
              
              # On download buttons:
              
              bsTooltip(id = list("prism.dl", "table.dl", "area.dl", "icons.dl", "bar.dl", "curve.dl", 
                                  "plane.ppv.dl", "plane.npv.dl"),
-                       title = "Save current graph as .png file.",
+                       title = "Speichere aktuellen Graph als .png file.",
                        placement = "left", trigger = "hover", options = list(container = "body"))
   )
 )
