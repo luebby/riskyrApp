@@ -387,32 +387,32 @@ shinyUI(
                                                    #                                   "accuracy only"  = "ac"),
                                                    #                    selected = "cddc")), 
                                                    column(3, offset = 0,
-                                                          selectInput("icons.arr_type", "Array type",
-                                                                      choices = list("array" = "array", 
-                                                                                     "shuffled" = "shuffledarray",
-                                                                                     "mosaic" = "mosaic",
-                                                                                     "fill equal" = "fillequal",
-                                                                                     "fill left" = "fillleft",
-                                                                                     "fill top" = "filltop",
-                                                                                     "scattered" = "scatter"), 
+                                                          selectInput("icons.arr_type", "Datenfeld Typ",
+                                                                      choices = list("Datenfeld" = "array", 
+                                                                                     "gemischt" = "shuffledarray",
+                                                                                     "Mosaik" = "mosaic",
+                                                                                     "gleichmäßig gefüllt" = "fillequal",
+                                                                                     "links gefüllt" = "fillleft",
+                                                                                     "von oben gefüllt" = "filltop",
+                                                                                     "gestreut" = "scatter"), 
                                                                       selected = "array"))),
                                                  
                                                  fluidRow(
                                                    column(3,
                                                           selectInput("symbol.hi", label = "hi (TP) symbol", 
-                                                                      choices = list("Circle" = 21, "Square" = 22, "Rhombus" = 23, "Triangle" = 24),
+                                                                      choices = list("Kreis" = 21, "Quadrat" = 22, "Raute" = 23, "Dreieck" = 24),
                                                                       selected = "22")),
                                                    column(3,
                                                           selectInput("symbol.mi", label = "mi (FN) symbol", 
-                                                                      choices = list("Circle" = 21, "Square" = 22, "Rhombus" = 23, "Triangle" = 24),
+                                                                      choices = list("Kreis" = 21, "Quadrat" = 22, "Raute" = 23, "Dreieck" = 24),
                                                                       selected = "22")),
                                                    column(3,
                                                           selectInput("symbol.fa", label = "fa (FP) symbol", 
-                                                                      choices = list("Circle" = 21, "Square" = 22, "Rhombus" = 23, "Triangle" = 24),
+                                                                      choices = list("Kreis" = 21, "Quadrat" = 22, "Raute" = 23, "Dreieck" = 24),
                                                                       selected = "22")),
                                                    column(3,
                                                           selectInput("symbol.cr", label = "cr (TN) symbol", 
-                                                                      choices = list("Circle" = 21, "Square" = 22, "Rhombus" = 23, "Triangle" = 24),
+                                                                      choices = list("Kreis" = 21, "Quadrat" = 22, "Raute" = 23, "Dreieck" = 24),
                                                                       selected = "22"))),
                                                  
                                                  fluidRow(
@@ -475,18 +475,18 @@ shinyUI(
                                                
                                                wellPanel(
                                                  fluidRow(
-                                                   column(3, offset = 0, checkboxInput("curve.show_PPV", label = "Positive predictive value (PPV)", value = TRUE)),
-                                                   column(3, checkboxInput("curve.show_NPV", label = "Negative predictive value (NPV)", value = TRUE)),
-                                                   column(3, checkboxInput("curve.show_acc", label = "Accuracy (acc)", value = FALSE)),
-                                                   column(3, checkboxInput("curve.show_ppod", label = "Proportion of positive decisions (ppod)", value = FALSE))),
+                                                   column(3, offset = 0, checkboxInput("curve.show_PPV", label = "Positiver prädiktiver Wert (PPV - positive predictive value)", value = TRUE)),
+                                                   column(3, checkboxInput("curve.show_NPV", label = "Negativer prädiktiver Wert (NPV - negative predictive value)", value = TRUE)),
+                                                   column(3, checkboxInput("curve.show_acc", label = "Genauigkeit (acc - accuracy)", value = FALSE)),
+                                                   column(3, checkboxInput("curve.show_ppod", label = "Anteil positiver Entscheidungen (ppod - proportion of positive decisions)", value = FALSE))),
                                                  
                                                  fluidRow(
-                                                   column(3, offset = 0, checkboxInput("curve.show_points", label = "Show point values", value = TRUE)),
+                                                   column(3, offset = 0, checkboxInput("curve.show_points", label = "Zeige Punktschätzer", value = TRUE)),
                                                    column(3, checkboxInput("curve.show_foot", label = "Bemerkungen zeigen", value = FALSE)), 
-                                                   column(6, checkboxInput("curve.log_scale", label = "Prevalence on logarithmic scale", value = FALSE))),
+                                                   column(6, checkboxInput("curve.log_scale", label = "Prävalenz auf logarithmischer Skala", value = FALSE))),
                                                  
                                                  fluidRow(
-                                                   column(8, sliderInput("curve.uc", "Uncertainty", value = 0, min = 0, max = 50, step = 1, pre = NULL, post = "%")),
+                                                   column(8, sliderInput("curve.uc", "Unsicherheit", value = 0, min = 0, max = 50, step = 1, pre = NULL, post = "%")),
                                                    column(2, offset = 1, downloadButton("curve.dl", label = "Save curves")))
                                                ) # wellPanel. 
                                       )#, # tabPanel.
