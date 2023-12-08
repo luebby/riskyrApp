@@ -27,7 +27,10 @@ default.labels <- txt_TF   # init_txt()
 
 # German labels
 assignInNamespace("lbl", riskyr:::lbl_de, ns = "riskyr", pos = "package:riskyr")
-
+default.labels$sdt_lbl <- "Fälle"
+default.labels$sdt_lbl <- "Fälle"
+default.labels$cond_lbl <- "Zustand"
+default.labels$dec_lbl <- "Ergebnis"
 
 ## Define server logic: ------ 
 
